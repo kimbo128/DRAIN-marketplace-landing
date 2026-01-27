@@ -33,6 +33,7 @@ DRAIN Marketplace is the discovery and registration platform for AI providers us
 - **Premium Placement** - Get featured for better visibility
 - **Health Monitoring** - Automatic uptime tracking
 - **MCP API** - Automatic discovery by AI agents
+- **[Integration Guide](docs/BECOME_A_PROVIDER.md)** - Complete documentation for providers
 
 ### For AI Agents & Developers
 
@@ -143,14 +144,17 @@ See [DRAIN Protocol](https://github.com/kimbo128/DRAIN) for full protocol docume
 
 ### For Providers
 
-1. Visit the [Live Marketplace](https://believable-inspiration-production-b1c6.up.railway.app/directory)
-2. Click "LIST_YOUR_API"
-3. Fill in your provider details
-4. Submit for review
+📖 **[Become a Provider Guide](docs/BECOME_A_PROVIDER.md)** - Complete integration documentation
+
+**Quick Start:**
+1. Clone the [reference provider](https://github.com/kimbo128/DRAIN/tree/main/provider)
+2. Configure your environment and deploy
+3. Register on the [Live Marketplace](https://believable-inspiration-production-b1c6.up.railway.app/directory)
+4. Start earning!
 
 **Requirements:**
 - DRAIN-compatible API endpoint (OpenAI-compatible)
-- Provider wallet address
+- Provider wallet address (Polygon)
 - Models and pricing information
 
 ### For Developers
@@ -174,6 +178,11 @@ See [DRAIN Protocol](https://github.com/kimbo128/DRAIN) for SDK documentation.
 
 ---
 
+## Documentation
+
+- **[Become a Provider](docs/BECOME_A_PROVIDER.md)** - Complete integration guide for AI providers
+- **[Provider README](https://github.com/kimbo128/DRAIN/blob/main/provider/README.md)** - Technical reference implementation
+
 ## Related Projects
 
 - **DRAIN Protocol**: [Core Protocol Repository](https://github.com/kimbo128/DRAIN) - Smart contracts, SDK, MCP Server
@@ -189,5 +198,8 @@ MIT License - See [DRAIN Protocol](https://github.com/kimbo128/DRAIN) for detail
 ---
 
 **Note**: The marketplace application code is in a private repository for business reasons. This repository contains only public marketing and documentation materials.
+
+
+
 
 
