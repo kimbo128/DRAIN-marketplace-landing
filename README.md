@@ -47,11 +47,11 @@ Ready-to-deploy provider templates for popular AI backends:
 
 | Template | Backend | Models |
 |----------|---------|--------|
-| [`hs58-openai`](https://github.com/Handshake58/DRAIN-marketplace/tree/main/providers/hs58-openai) | OpenAI | GPT-4o, o1, o3-mini, GPT-3.5 |
-| [`hs58-claude`](https://github.com/Handshake58/DRAIN-marketplace/tree/main/providers/hs58-claude) | Anthropic | Claude 3.5 Sonnet, Haiku, Opus |
-| [`hs58-grok`](https://github.com/Handshake58/DRAIN-marketplace/tree/main/providers/hs58-grok) | xAI | Grok-2, Grok-2 Mini |
-| [`hs58-openrouter`](https://github.com/Handshake58/DRAIN-marketplace/tree/main/providers/hs58-openrouter) | OpenRouter | 200+ models |
-| [`hs58-chutes`](https://github.com/Handshake58/DRAIN-marketplace/tree/main/providers/hs58-chutes) | Chutes | Bittensor inference models |
+| [`hs58-openai`](providers/hs58-openai) | OpenAI | GPT-4o, o1, o3-mini, GPT-3.5 |
+| [`hs58-claude`](providers/hs58-claude) | Anthropic | Claude 3.5 Sonnet, Haiku, Opus |
+| [`hs58-grok`](providers/hs58-grok) | xAI | Grok-2, Grok-2 Mini |
+| [`hs58-openrouter`](providers/hs58-openrouter) | OpenRouter | 200+ models |
+| [`hs58-chutes`](providers/hs58-chutes) | Chutes | Bittensor inference models |
 
 Each template includes:
 - Full DRAIN voucher validation (EIP-712 signatures)
@@ -64,9 +64,9 @@ Each template includes:
 ### Quick Start
 
 ```bash
-# Clone any provider template
-git clone https://github.com/Handshake58/DRAIN-marketplace.git
-cd DRAIN-marketplace/providers/hs58-openai
+# Clone provider templates
+git clone https://github.com/kimbo128/DRAIN-marketplace-landing.git
+cd DRAIN-marketplace-landing/providers/hs58-openai
 
 # Install and configure
 npm install
@@ -126,9 +126,10 @@ GET https://handshake58.com/api/mcp/providers?model=gpt-4o&tier=bittensor&limit=
 ### For Agents
 
 1. **Discover** — Query the marketplace API for providers
-2. **Open Channel** — Deposit USDC into a DRAIN payment channel (~$0.02 gas)
-3. **Use AI** — Send requests with signed vouchers (free, off-chain)
-4. **Close Channel** — Withdraw unused USDC when done
+2. **Pay Session Fee** — Transfer $0.01 USDC to marketplace fee wallet (from `GET /api/directory/config`)
+3. **Open Channel** — Deposit USDC into a DRAIN payment channel (~$0.02 gas)
+4. **Use AI** — Send requests with signed vouchers (free, off-chain)
+5. **Close Channel** — Withdraw unused USDC when done
 
 ### For Providers
 
@@ -190,7 +191,7 @@ Polygon ────────────────── Polygon
 
 | Repo | Description |
 |------|-------------|
-| [DRAIN-marketplace](https://github.com/Handshake58/DRAIN-marketplace) | Marketplace app + provider templates |
+| [DRAIN-marketplace-landing](https://github.com/kimbo128/DRAIN-marketplace-landing) | Public landing page, provider templates, documentation |
 | [HS58-validator](https://github.com/Handshake58/HS58-validator) | Bittensor Subnet 58 validator |
 | [DRAIN Protocol](https://github.com/kimbo128/DRAIN) | Core protocol, SDK, smart contracts |
 
@@ -200,7 +201,7 @@ Polygon ────────────────── Polygon
 
 - [Become a Provider](docs/BECOME_A_PROVIDER.md) — Full integration guide
 - [Agent Quick Start](https://handshake58.com/agent.md) — For AI agents and developers
-- [Architecture](https://github.com/Handshake58/DRAIN-marketplace/blob/main/ARCHITECTURE.md) — System design overview
+- [For Agents](https://handshake58.com/for-agents) — Session fee flow, wallet setup, contract info
 
 ---
 

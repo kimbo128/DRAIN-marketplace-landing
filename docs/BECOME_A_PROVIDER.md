@@ -41,8 +41,8 @@ We provide ready-to-deploy templates for popular AI backends:
 ### 1. Choose a Template
 
 ```bash
-git clone https://github.com/Handshake58/DRAIN-marketplace.git
-cd DRAIN-marketplace/providers/
+git clone https://github.com/kimbo128/DRAIN-marketplace-landing.git
+cd DRAIN-marketplace-landing/providers/
 ```
 
 | Template | Backend | Best For |

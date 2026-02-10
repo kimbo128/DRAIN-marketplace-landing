@@ -11,6 +11,13 @@ Thumbs.db
 # Logs
 *.log
 
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build
+dist/
+
 
 
 
