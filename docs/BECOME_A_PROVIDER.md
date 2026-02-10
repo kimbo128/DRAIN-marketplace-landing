@@ -117,20 +117,27 @@ Go to [handshake58.com/directory](https://handshake58.com/directory) and submit 
 ### Payment Flow
 
 ```
-1. Agent opens a DRAIN channel
+1. Agent pays session fee ($0.01 USDC)
+   → Direct USDC transfer to marketplace fee wallet
+   → Fee wallet address from GET /api/directory/config → { feeWallet }
+   → This is a standard ERC-20 transfer, NOT part of the DRAIN contract
+
+2. Agent opens a DRAIN channel
    → Deposits USDC into smart contract
    → Channel has an expiry (e.g., 24 hours)
 
-2. Agent sends requests to your API
+3. Agent sends requests to your API
    → Each request includes a signed voucher (X-DRAIN-Voucher header)
    → Voucher = "I authorize payment of X USDC from channel Y"
    → Your provider validates the signature and serves the request
 
-3. Provider claims earned USDC
+4. Provider claims earned USDC
    → Call contract.claim() with the highest voucher
    → USDC transfers to your wallet
    → Auto-claim runs every 10 minutes for expiring channels
 ```
+
+> **Note:** The session fee is paid to the marketplace, not to providers. Providers receive 100% of DRAIN channel payments with zero protocol fees.
 
 ### Voucher Format
 
