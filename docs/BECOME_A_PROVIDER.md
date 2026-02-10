@@ -1,372 +1,342 @@
-# Become a DRAIN Provider
+# Become a Handshake58 Provider
 
-Earn revenue by offering AI services through the DRAIN network. Accept trustless micropayments from autonomous AI agents without credit cards, chargebacks, or KYC requirements.
+Earn revenue by offering AI inference through the Handshake58 marketplace. Accept trustless micropayments from AI agents — no credit cards, no chargebacks, no KYC.
+
+---
 
 ## Why Become a Provider?
 
 | Benefit | Description |
 |---------|-------------|
-| 💰 **Instant Payments** | Receive USDC directly to your wallet via smart contract |
-| 🔒 **Zero Chargebacks** | Blockchain-based payments are final and irreversible |
-| 🌍 **Global Access** | Accept payments from anywhere, no geographic restrictions |
-| 🤖 **Agent Compatible** | Tap into the growing autonomous AI agent economy |
-| 📊 **Transparent Pricing** | You set your own prices per model |
-| ⚡ **Low Fees** | Only ~$0.02 gas to claim accumulated payments |
+| **Instant Payments** | Receive USDC directly to your wallet via smart contract |
+| **Zero Chargebacks** | Blockchain-based payments are final and irreversible |
+| **Global Access** | Accept payments from anywhere, no geographic restrictions |
+| **Agent Compatible** | Tap into the growing autonomous AI agent economy |
+| **Bittensor Scoring** | Earn TAO emissions as a Subnet 58 miner |
+| **Auto-Claim Protection** | Built-in expiry monitoring ensures you never lose earned funds |
 
 ---
 
-## Overview
+## Two Ways to Join
 
-As a DRAIN provider, you offer AI inference services (LLMs, image generation, audio, etc.) and accept payment via DRAIN vouchers instead of traditional API keys. The integration is straightforward:
+### Option A: Community Provider (Easy Start)
 
-```
-Consumer Opens Channel → Signs Vouchers → Sends to Your API → You Verify & Serve → Claim Payments
-```
+1. Deploy a provider template
+2. Register on the [marketplace](https://handshake58.com/directory)
+3. Get admin-approved and listed
+
+### Option B: Bittensor Miner (TAO Verified)
+
+1. Deploy a provider template
+2. Register on Bittensor Subnet 58 as a miner
+3. Run the miner software alongside your provider
+4. Get auto-approved, scored, and earn TAO emissions
 
 ---
 
-## Integration Steps
+## Quick Start with Provider Templates
 
-### Step 1: Set Up Your Wallet
+We provide ready-to-deploy templates for popular AI backends:
 
-Create an Ethereum wallet that will receive payments. This address is used to:
-- Identify your provider in the DRAIN contract
-- Receive claimed USDC payments
-- Sign claim transactions
+### 1. Choose a Template
 
 ```bash
-# Your provider address (public)
-PROVIDER_ADDRESS=0xYourWalletAddress
-
-# Your private key (keep secret!)
-PROVIDER_PRIVATE_KEY=0x...
+git clone https://github.com/Handshake58/DRAIN-marketplace.git
+cd DRAIN-marketplace/providers/
 ```
 
-> ⚠️ **Security**: Never commit your private key. Use environment variables or a secrets manager.
+| Template | Backend | Best For |
+|----------|---------|----------|
+| `hs58-openai` | OpenAI API | GPT-4o, o1, o3-mini |
+| `hs58-claude` | Anthropic API | Claude 3.5 Sonnet, Opus |
+| `hs58-grok` | xAI API | Grok-2 |
+| `hs58-openrouter` | OpenRouter | 200+ models from any provider |
+| `hs58-chutes` | Chutes | Bittensor inference models |
 
-### Step 2: Implement DRAIN Headers
+### 2. Configure
 
-Your API must accept the `X-DRAIN-Voucher` header and return DRAIN response headers.
+```bash
+cd hs58-openai  # or any template
+npm install
+cp .env.example .env
+```
 
-#### Request Header
+Edit `.env`:
+
+```env
+# Your upstream API key
+OPENAI_API_KEY=sk-...
+
+# Your Polygon wallet (receives USDC payments)
+PROVIDER_PRIVATE_KEY=0x...
+
+# Network
+CHAIN_ID=137
+
+# Pricing markup on upstream costs (e.g., 50 = 50% markup)
+MARKUP_PERCENT=50
+
+# Minimum USDC to trigger a claim (in wei, 6 decimals)
+# 1000000 = $1.00 USDC
+CLAIM_THRESHOLD=1000000
+
+# Server
+PORT=3000
+```
+
+### 3. Run
+
+```bash
+npm start
+```
+
+Your provider is now live at `http://localhost:3000` with:
+- `GET /v1/pricing` — Your models and prices
+- `GET /v1/models` — OpenAI-compatible model list
+- `POST /v1/chat/completions` — Chat endpoint (requires `X-DRAIN-Voucher` header)
+- `GET /health` — Health check
+
+### 4. Deploy
+
+**Railway (recommended):**
+1. Connect your GitHub repo
+2. Set root directory to `providers/hs58-openai`
+3. Add environment variables
+4. Deploy
+
+**Any platform:** Docker, Render, Fly.io, VPS — anything that can run Node.js.
+
+### 5. Register
+
+Go to [handshake58.com/directory](https://handshake58.com/directory) and submit your provider.
+
+---
+
+## How DRAIN Payments Work
+
+### Payment Flow
+
+```
+1. Agent opens a DRAIN channel
+   → Deposits USDC into smart contract
+   → Channel has an expiry (e.g., 24 hours)
+
+2. Agent sends requests to your API
+   → Each request includes a signed voucher (X-DRAIN-Voucher header)
+   → Voucher = "I authorize payment of X USDC from channel Y"
+   → Your provider validates the signature and serves the request
+
+3. Provider claims earned USDC
+   → Call contract.claim() with the highest voucher
+   → USDC transfers to your wallet
+   → Auto-claim runs every 10 minutes for expiring channels
+```
+
+### Voucher Format
+
+Agents send this header with every request:
 
 ```http
 X-DRAIN-Voucher: {
   "channelId": "0x...",
-  "amount": "1000000",
-  "nonce": "1", 
+  "amount": "1500000",
+  "nonce": "3",
   "signature": "0x..."
 }
 ```
 
-#### Response Headers
+Your provider validates:
+1. **Channel exists** on the DRAIN contract
+2. **You are the provider** for this channel
+3. **Signature is valid** (EIP-712 typed data, signed by channel consumer)
+4. **Amount covers** the estimated request cost
+5. **Nonce is incrementing** (prevents replay)
+
+All of this is handled automatically by the provider templates.
+
+### Response Headers
+
+Your provider returns cost info to the agent:
 
 ```http
-X-DRAIN-Cost: 8250
-X-DRAIN-Total: 1008250
-X-DRAIN-Remaining: 8991750
-X-DRAIN-Channel: 0x...
-```
-
-### Step 3: Verify Vouchers
-
-Before serving a request, verify:
-
-1. **Signature is valid** (EIP-712 typed data)
-2. **Channel exists** on the DRAIN contract
-3. **Amount is sufficient** for the request cost
-4. **Nonce is incrementing** (prevents replay attacks)
-5. **Channel is yours** (provider address matches)
-
-```javascript
-// Pseudo-code for voucher verification
-async function verifyVoucher(voucher) {
-  // 1. Recover signer from EIP-712 signature
-  const signer = recoverTypedDataSigner(voucher);
-  
-  // 2. Get channel from contract
-  const channel = await drainContract.getChannel(voucher.channelId);
-  
-  // 3. Verify channel belongs to this provider
-  if (channel.provider !== PROVIDER_ADDRESS) {
-    throw new Error('wrong_provider');
-  }
-  
-  // 4. Verify signer is channel consumer
-  if (signer !== channel.consumer) {
-    throw new Error('invalid_signature');
-  }
-  
-  // 5. Verify amount is sufficient
-  const estimatedCost = calculateCost(request);
-  if (BigInt(voucher.amount) < channel.claimed + estimatedCost) {
-    throw new Error('insufficient_funds');
-  }
-  
-  return { channel, estimatedCost };
-}
-```
-
-### Step 4: Store Vouchers & Claim Payments
-
-Store the highest-value voucher for each channel. You can batch-claim payments periodically:
-
-```javascript
-// Store voucher if it's the highest for this channel
-function storeVoucher(channelId, voucher) {
-  const existing = vouchers.get(channelId);
-  if (!existing || BigInt(voucher.amount) > BigInt(existing.amount)) {
-    vouchers.set(channelId, voucher);
-  }
-}
-
-// Claim payment from contract
-async function claimPayment(channelId, voucher) {
-  const tx = await drainContract.claim(
-    channelId,
-    voucher.amount,
-    voucher.nonce,
-    voucher.signature
-  );
-  await tx.wait();
-  console.log('Payment claimed:', formatUSDC(voucher.amount));
-}
+X-DRAIN-Cost: 8250          # Cost of this request (USDC wei)
+X-DRAIN-Total: 1508250      # Total spent in this channel
+X-DRAIN-Remaining: 8491750  # Remaining deposit
+X-DRAIN-Channel: 0x...      # Channel ID
 ```
 
 ---
 
-## Quick Start with Reference Provider
+## Auto-Claim Protection
 
-Clone and run the DRAIN reference provider to get started quickly:
+The provider templates include automatic expiry protection:
 
-```bash
-# Clone the repository
-git clone https://github.com/kimbo128/DRAIN.git
-cd DRAIN/provider
+- **Every 10 minutes**, the provider checks all active channels
+- If a channel is **expiring within 1 hour**, it claims immediately
+- This ensures you **never lose earned funds** from expired channels
+- Manual claim is also available: `POST /v1/admin/claim?force=true`
 
-# Install dependencies
-npm install
-
-# Configure environment
-cp env.example .env
-# Edit .env with your settings
-
-# Run the provider
-npm run dev
-```
-
-The reference provider handles all voucher verification, token counting, and payment claiming out of the box.
-
-📖 **Full technical documentation**: [provider/README.md](https://github.com/kimbo128/DRAIN/blob/main/provider/README.md)
+The DRAIN contract also protects you:
+- Agents **cannot close** a channel before its expiry
+- You can claim **at any time** before expiry
+- After expiry, the agent can only reclaim the **unclaimed remainder**
 
 ---
 
 ## Pricing Your Services
 
-Set competitive prices to attract users. Prices are specified in USDC (6 decimals):
+Prices are set as a **markup** on upstream API costs. The provider template handles this automatically.
 
 ```env
-# Pricing in USDC wei per 1000 tokens
-# $0.0001 per 1K tokens = 100 USDC wei
-PRICE_GPT4O_MINI_INPUT=75       # $0.000075/1K
-PRICE_GPT4O_MINI_OUTPUT=150     # $0.00015/1K
-PRICE_GPT4O_INPUT=7500          # $0.0075/1K
-PRICE_GPT4O_OUTPUT=22500        # $0.0225/1K
+# 50% markup means you charge 1.5x the upstream cost
+MARKUP_PERCENT=50
 ```
 
-### Price Calculation Example
+Example with 50% markup on GPT-4o:
+- OpenAI charges: $2.50 / $10.00 per million tokens (input/output)
+- You charge: $3.75 / $15.00 per million tokens
+- Your profit: $1.25 / $5.00 per million tokens
 
-```
-Request: 500 input tokens, 200 output tokens
-Model: gpt-4o
-
-Input cost:  500 × ($0.0075 / 1000) = $0.00375
-Output cost: 200 × ($0.0225 / 1000) = $0.00450
-Total cost:                         = $0.00825
-```
-
-### Pricing Strategy Tips
-
-| Strategy | Description |
-|----------|-------------|
-| **Competitive** | Match or undercut existing API providers |
-| **Premium** | Charge more for faster/higher quality models |
-| **Volume** | Lower prices to attract more usage |
-| **Margin** | Ensure your prices cover your costs + profit |
+The marketplace fetches your pricing from `/v1/pricing` and displays it to agents.
 
 ---
 
-## Required API Endpoints
+## Building a Custom Provider
 
-### `/v1/pricing` (GET)
+If the templates don't fit your use case, build your own using `DrainService`:
 
-Return your pricing information. This is called by the marketplace and consumers.
+```typescript
+import { DrainService } from './drain.js';
+import { VoucherStorage } from './storage.js';
 
-```json
-{
-  "provider": "0xYourAddress",
-  "chainId": 137,
-  "currency": "USDC",
-  "decimals": 6,
-  "models": {
-    "gpt-4o": {
-      "inputPer1kTokens": "0.0075",
-      "outputPer1kTokens": "0.0225"
-    },
-    "gpt-4o-mini": {
-      "inputPer1kTokens": "0.000075",
-      "outputPer1kTokens": "0.00015"
-    }
-  }
-}
+// Initialize
+const storage = new VoucherStorage('./data/vouchers.json');
+const drain = new DrainService(config, storage);
+
+// Start auto-claim
+drain.startAutoClaim(10, 3600);
+
+// In your request handler:
+app.post('/v1/chat/completions', async (req, res) => {
+  // 1. Parse voucher
+  const voucher = drain.parseVoucherHeader(req.headers['x-drain-voucher']);
+  if (!voucher) return res.status(402).json({ error: 'voucher_required' });
+
+  // 2. Validate (checks signature, channel, amount, nonce)
+  const result = await drain.validateVoucher(voucher, estimatedCost);
+  if (!result.valid) return res.status(402).json({ error: result.error });
+
+  // 3. Serve your AI response
+  const response = await yourAIBackend(req.body);
+
+  // 4. Store voucher for claiming
+  drain.storeVoucher(voucher, result.channel, actualCost);
+
+  // 5. Return with cost headers
+  res.set({
+    'X-DRAIN-Cost': actualCost.toString(),
+    'X-DRAIN-Total': result.channel.totalCharged.toString(),
+  }).json(response);
+});
 ```
 
-### `/v1/chat/completions` (POST)
+### Required Endpoints
 
-OpenAI-compatible chat endpoint. Supports streaming.
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/v1/pricing` | GET | Models and prices (called by marketplace) |
+| `/v1/models` | GET | OpenAI-compatible model list |
+| `/v1/chat/completions` | POST | Chat endpoint with `X-DRAIN-Voucher` |
+| `/health` | GET | Health check (called by marketplace) |
 
-### `/v1/models` (GET)
+### Optional Admin Endpoints
 
-List available models.
-
----
-
-## Register on the Marketplace
-
-Once your provider is running, register it on the DRAIN Marketplace:
-
-1. Go to **[DRAIN Marketplace](https://believable-inspiration-production-b1c6.up.railway.app/directory)**
-2. Click **"LIST_YOUR_API"**
-3. Fill in your details:
-   - Provider Name
-   - API URL (must be publicly accessible)
-   - Wallet Address (must match your provider)
-   - Description & Contact Email
-4. Your API will be **automatically tested**
-5. Once approved, you'll appear in the marketplace
-
-### Featured Placement
-
-Want priority positioning? Check the "Featured Placement" option when registering. We'll contact you to discuss promotional terms.
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/v1/admin/claim` | POST | Trigger manual claim (`?force=true` ignores threshold) |
+| `/v1/admin/stats` | GET | Provider statistics |
+| `/v1/admin/vouchers` | GET | View pending vouchers |
 
 ---
 
-## Production Checklist
+## Becoming a Bittensor Miner
 
-Before going live, ensure:
+To earn TAO emissions and get the "TAO Verified" tier:
 
-- [ ] **Security**: Private key secured in environment variables
-- [ ] **HTTPS**: API accessible via HTTPS only
-- [ ] **Database**: Use persistent storage (not file-based)
-- [ ] **Auth**: Protect admin endpoints
-- [ ] **Rate Limiting**: Prevent abuse
-- [ ] **Monitoring**: Log requests, errors, and revenue
-- [ ] **Claiming**: Automate payment claiming (cron job recommended)
-- [ ] **Backup**: Backup voucher storage regularly
+1. **Create a Bittensor wallet** and register on Subnet 58
+2. **Run the miner software** from [HS58-validator](https://github.com/Handshake58/HS58-validator)
+3. The miner:
+   - Responds to validator health checks with a wallet ownership proof
+   - Auto-registers on the marketplace with sr25519 hotkey signature
+   - Points to your existing provider API
+4. **Validators score you** based on:
+   - 60% DRAIN claims (real USDC payments you received)
+   - 40% Availability (responding to validator checks)
+
+```bash
+# Miner environment variables
+POLYGON_WALLET=0xYourProviderAddress
+POLYGON_PRIVATE_KEY=0x...
+API_URL=https://your-provider.com
+MARKETPLACE_URL=https://handshake58.com
+```
 
 ---
 
 ## Contract Details
 
-| Network | Contract Address | USDC |
-|---------|------------------|------|
-| **Polygon Mainnet** | `0x1C1918C99b6DcE977392E4131C91654d8aB71e64` | Native USDC |
-| **Polygon Amoy** (Testnet) | `0x6D...` | Test USDC |
+| Contract | Address | Network |
+|----------|---------|---------|
+| DRAIN Channel | `0x1C1918C99b6DcE977392E4131C91654d8aB71e64` | Polygon Mainnet |
+| USDC | `0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359` | Polygon Mainnet |
 
-**Contract Functions:**
-- `claim(channelId, amount, nonce, signature)` - Claim payment
-- `getChannel(channelId)` - Get channel details
-- `getBalance(channelId)` - Get remaining balance
+**Key contract functions:**
+- `claim(channelId, amount, nonce, signature)` — Claim payment
+- `getChannel(channelId)` — Get channel details (consumer, provider, deposit, claimed, expiry)
+- `getBalance(channelId)` — Get remaining balance
 
----
-
-## Support & Resources
-
-| Resource | Link |
-|----------|------|
-| 📦 Reference Provider | [github.com/kimbo128/DRAIN/tree/main/provider](https://github.com/kimbo128/DRAIN/tree/main/provider) |
-| 📖 Protocol Documentation | [github.com/kimbo128/DRAIN](https://github.com/kimbo128/DRAIN) |
-| 🏪 Marketplace | [DRAIN Marketplace](https://believable-inspiration-production-b1c6.up.railway.app/directory) |
-| 📜 Smart Contract | [Polygonscan](https://polygonscan.com/address/0x1C1918C99b6DcE977392E4131C91654d8aB71e64) |
+[View on Polygonscan](https://polygonscan.com/address/0x1C1918C99b6DcE977392E4131C91654d8aB71e64)
 
 ---
 
-## Example Implementations
+## Production Checklist
 
-### Minimal Express.js Provider
-
-```javascript
-import express from 'express';
-import { verifyVoucher, storeVoucher, calculateCost } from './drain.js';
-import { callOpenAI } from './openai.js';
-
-const app = express();
-app.use(express.json());
-
-app.post('/v1/chat/completions', async (req, res) => {
-  // 1. Parse voucher
-  const voucherHeader = req.headers['x-drain-voucher'];
-  if (!voucherHeader) {
-    return res.status(402).json({ error: 'voucher_required' });
-  }
-  
-  const voucher = JSON.parse(voucherHeader);
-  
-  // 2. Verify voucher
-  try {
-    await verifyVoucher(voucher);
-  } catch (e) {
-    return res.status(402).json({ error: e.message });
-  }
-  
-  // 3. Call AI backend
-  const response = await callOpenAI(req.body);
-  
-  // 4. Calculate cost and set headers
-  const cost = calculateCost(response.usage);
-  res.setHeader('X-DRAIN-Cost', cost.toString());
-  res.setHeader('X-DRAIN-Total', voucher.amount);
-  
-  // 5. Store voucher for later claiming
-  storeVoucher(voucher.channelId, voucher);
-  
-  // 6. Return response
-  res.json(response);
-});
-
-app.listen(3000);
-```
+- [ ] HTTPS enabled (required for marketplace registration)
+- [ ] Private key secured in environment variables
+- [ ] Persistent storage for vouchers (database recommended for high volume)
+- [ ] Auto-claim running (enabled by default in templates)
+- [ ] `/v1/pricing` returns correct models and prices
+- [ ] `/health` returns 200 OK
+- [ ] Registered on [handshake58.com/directory](https://handshake58.com/directory)
 
 ---
 
 ## FAQ
 
-**Q: How often should I claim payments?**
-A: Depends on your volume. Daily claiming is common. Set a threshold (e.g., $10) to batch claims and save on gas.
+**How often are payments claimed?**
+Auto-claim checks every 10 minutes and claims channels expiring within 1 hour. You can also trigger manual claims via `/v1/admin/claim`.
 
-**Q: What if a consumer disputes a payment?**
-A: DRAIN payments are trustless and final. The signed voucher is cryptographic proof of authorization.
+**What if a consumer doesn't use the full deposit?**
+They get the unused portion back after channel expiry. You keep everything that was claimed.
 
-**Q: Can I change my prices?**
-A: Yes, update your `/v1/pricing` endpoint anytime. New channels will use your current prices.
+**Can I change my prices?**
+Yes, update your `MARKUP_PERCENT` env var and restart. The marketplace fetches fresh pricing from your `/v1/pricing` endpoint.
 
-**Q: What happens if my server goes down?**
-A: Consumers can still close their channels and get refunds. Resume service when ready.
+**What if my server goes down?**
+Agents can't make new requests, but your unclaimed vouchers are still valid. The auto-claim will process them when you restart (if channels haven't expired).
 
-**Q: Do I need to KYC users?**
-A: No. DRAIN is permissionless. Anyone with USDC can use your service.
-
----
-
-## Ready to Start?
-
-1. 📥 Clone the [reference provider](https://github.com/kimbo128/DRAIN/tree/main/provider)
-2. ⚙️ Configure your environment
-3. 🚀 Deploy to your server
-4. 📝 Register on the [marketplace](https://believable-inspiration-production-b1c6.up.railway.app/directory)
-5. 💰 Start earning!
+**How much MATIC do I need for claiming?**
+Each claim costs ~$0.02 in gas. Keep ~$1 worth of MATIC in your provider wallet.
 
 ---
 
-*DRAIN © 2026 - Trustless payments for the AI economy*
+## Support
 
+- [Marketplace](https://handshake58.com)
+- [GitHub Issues](https://github.com/Handshake58/DRAIN-marketplace/issues)
+- [Architecture Docs](https://github.com/Handshake58/DRAIN-marketplace/blob/main/ARCHITECTURE.md)
+- [Smart Contract on Polygonscan](https://polygonscan.com/address/0x1C1918C99b6DcE977392E4131C91654d8aB71e64)
+
+---
+
+Handshake58 &copy; 2026 — Trustless AI payments powered by DRAIN Protocol & Bittensor

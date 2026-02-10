@@ -1,205 +1,213 @@
-# DRAIN Marketplace
+# Handshake58 Marketplace
 
-<div align="center">
-  <img src="docs/marketplace-banner.png" alt="DRAIN Marketplace" width="800">
-</div>
+<p align="center">
+  <strong>AI Provider Directory powered by DRAIN Protocol & Bittensor Subnet 58</strong>
+</p>
 
-**Provider Directory & Discovery Platform for DRAIN Protocol**
+Discover, register, and manage AI providers with trustless micropayments on Polygon.
 
-Discover, register, and manage DRAIN-compatible AI providers with trustless micropayments.
-
-**🟢 Live Marketplace**: https://believable-inspiration-production-b1c6.up.railway.app/directory
+**Live Marketplace**: [handshake58.com](https://handshake58.com)
 
 ---
 
-## What is DRAIN Marketplace?
+## What is Handshake58?
 
-DRAIN Marketplace is the discovery and registration platform for AI providers using the [DRAIN Protocol](https://github.com/kimbo128/DRAIN). It enables:
+Handshake58 is a decentralized AI provider marketplace where agents discover providers, pay per request via the DRAIN Protocol, and providers are scored trustlessly through Bittensor Subnet 58.
 
-- **Provider Discovery** - Find AI providers with the models you need
-- **Quality Control** - Admin-approved providers ensure reliability
-- **Premium Placements** - Featured providers get better visibility
-- **Health Monitoring** - Real-time status checks for all providers
-- **MCP Integration** - Automatic provider discovery for AI agents
+- **Provider Discovery** — Find AI providers by model, tier, or score
+- **Trustless Scoring** — Bittensor validators score providers based on real on-chain usage
+- **Micropayments** — Pay-per-request with USDC on Polygon via payment channels
+- **Two Provider Tiers** — Bittensor Miners (auto-verified) and Community Providers (admin-approved)
+- **MCP Integration** — AI agents discover providers automatically
 
 ---
 
-## Features
+## Provider Tiers
 
-### For AI Providers
+### TAO Verified (Bittensor Miners)
 
-- **Easy Registration** - Submit your provider in minutes
-- **Admin Approval** - Quality control ensures reliable providers
-- **Premium Placement** - Get featured for better visibility
-- **Health Monitoring** - Automatic uptime tracking
-- **MCP API** - Automatic discovery by AI agents
-- **[Integration Guide](docs/BECOME_A_PROVIDER.md)** - Complete documentation for providers
+Providers that run as Bittensor Subnet 58 miners. They are:
+- Cryptographically verified via hotkey signatures (sr25519)
+- Auto-approved on registration
+- Scored by validators: 60% DRAIN claims + 40% availability
+- Listed with their Bittensor metagraph score
 
-### For AI Agents & Developers
+### Community Providers
 
-- **Provider Discovery** - Find providers with specific models
-- **Live Status** - See which providers are online
-- **Pricing Information** - Compare costs across providers
-- **MCP Integration** - Automatic discovery via MCP Server
-- **API Access** - Programmatic provider lookup
+Independent providers that register manually:
+- Admin-reviewed and tested before approval
+- Full access to the marketplace API
+- Can upgrade to Bittensor tier by running miner software
 
-### For Marketplace Administrators
+---
 
-- **Provider Management** - Approve/reject submissions
-- **Premium Control** - Manage featured placements
-- **Health Monitoring** - Track provider uptime
-- **Quality Assurance** - Ensure reliable providers
+## Provider SDK & Templates
+
+Ready-to-deploy provider templates for popular AI backends:
+
+| Template | Backend | Models |
+|----------|---------|--------|
+| [`hs58-openai`](https://github.com/Handshake58/DRAIN-marketplace/tree/main/providers/hs58-openai) | OpenAI | GPT-4o, o1, o3-mini, GPT-3.5 |
+| [`hs58-claude`](https://github.com/Handshake58/DRAIN-marketplace/tree/main/providers/hs58-claude) | Anthropic | Claude 3.5 Sonnet, Haiku, Opus |
+| [`hs58-grok`](https://github.com/Handshake58/DRAIN-marketplace/tree/main/providers/hs58-grok) | xAI | Grok-2, Grok-2 Mini |
+| [`hs58-openrouter`](https://github.com/Handshake58/DRAIN-marketplace/tree/main/providers/hs58-openrouter) | OpenRouter | 200+ models |
+| [`hs58-chutes`](https://github.com/Handshake58/DRAIN-marketplace/tree/main/providers/hs58-chutes) | Chutes | Bittensor inference models |
+
+Each template includes:
+- Full DRAIN voucher validation (EIP-712 signatures)
+- Automatic payment claiming with expiry protection
+- OpenAI-compatible API (`/v1/chat/completions`)
+- Configurable pricing with upstream markup
+- Health monitoring endpoints
+- One-click Railway deployment
+
+### Quick Start
+
+```bash
+# Clone any provider template
+git clone https://github.com/Handshake58/DRAIN-marketplace.git
+cd DRAIN-marketplace/providers/hs58-openai
+
+# Install and configure
+npm install
+cp .env.example .env
+# Edit .env with your API key and Polygon wallet
+
+# Run
+npm start
+```
+
+---
+
+## For AI Agents
+
+### MCP Server (Recommended)
+
+```bash
+npm install -g drain-mcp
+```
+
+Add to your Claude Desktop or Cursor config:
+
+```json
+{
+  "mcpServers": {
+    "drain": {
+      "command": "drain-mcp",
+      "env": {
+        "DRAIN_PRIVATE_KEY": "your-polygon-wallet-private-key"
+      }
+    }
+  }
+}
+```
+
+### API Discovery
+
+```bash
+# All providers
+GET https://handshake58.com/api/mcp/providers
+
+# Smart filters
+GET https://handshake58.com/api/mcp/providers?model=gpt-4o&tier=bittensor&limit=3&format=compact
+```
+
+**Filters:** `model`, `tier` (bittensor/community), `minScore`, `limit`, `format` (compact/full)
+
+### Agent Documentation
+
+- [Agent Quick Start](https://handshake58.com/agent.md)
+- [MCP Skill File](https://handshake58.com/skill.md)
 
 ---
 
 ## How It Works
 
-### For Providers
+### For Agents
 
-1. **Register** - Submit your provider details via the marketplace
-2. **Review** - Admin reviews and tests your provider
-3. **Approval** - Once approved, your provider appears in the directory
-4. **Premium** - Optional premium placement for better visibility
-
-### For Users
-
-1. **Browse** - View all approved providers
-2. **Filter** - Find providers with specific models
-3. **Discover** - Use MCP Server for automatic discovery
-4. **Connect** - Use provider address directly with DRAIN Protocol
-
----
-
-## Live Marketplace
-
-**🟢 Visit**: https://believable-inspiration-production-b1c6.up.railway.app/directory
-
-**Features Available:**
-- Provider directory with live status
-- Provider registration form
-- MCP API endpoint for agent discovery
-- Health monitoring dashboard
-
----
-
-## MCP Integration
-
-The marketplace provides automatic provider discovery for the DRAIN MCP Server:
-
-```bash
-GET https://believable-inspiration-production-b1c6.up.railway.app/api/mcp/providers
-```
-
-**Response includes:**
-- Provider information
-- Available models
-- Pricing details
-- Live status
-
-The DRAIN MCP Server automatically uses this endpoint to discover providers.
-
-**Install MCP Server:**
-```bash
-npm install -g drain-mcp
-```
-
-See [DRAIN MCP Server](https://www.npmjs.com/package/drain-mcp) for full documentation.
-
----
-
-## About DRAIN Protocol
-
-This marketplace is built on top of [DRAIN Protocol](https://github.com/kimbo128/DRAIN).
-
-**DRAIN Protocol** enables:
-- Trustless payment channels with USDC
-- EIP-712 voucher system for off-chain payments
-- Smart contracts on Polygon (immutable, no admin keys)
-- TypeScript SDK for developers
-- MCP Server for AI agents
-
-**Key Benefits:**
-- **Micropayments** - Pay $0.000005 per request
-- **No Credit Cards** - Permissionless crypto access
-- **Agent-Compatible** - AI agents can pay autonomously
-- **Low Fees** - ~$0.02 per transaction on Polygon
-
-See [DRAIN Protocol](https://github.com/kimbo128/DRAIN) for full protocol documentation.
-
----
-
-## Screenshots
-
-*Screenshots coming soon*
-
-<!--
-![Marketplace Overview](docs/screenshots/marketplace-overview.png)
-![Provider Registration](docs/screenshots/provider-registration.png)
-![Premium Provider](docs/screenshots/premium-provider.png)
--->
-
----
-
-## Getting Started
+1. **Discover** — Query the marketplace API for providers
+2. **Open Channel** — Deposit USDC into a DRAIN payment channel (~$0.02 gas)
+3. **Use AI** — Send requests with signed vouchers (free, off-chain)
+4. **Close Channel** — Withdraw unused USDC when done
 
 ### For Providers
 
-📖 **[Become a Provider Guide](docs/BECOME_A_PROVIDER.md)** - Complete integration documentation
+1. **Deploy** — Use a provider template or build your own
+2. **Register** — Submit via marketplace or auto-register as Bittensor miner
+3. **Serve** — Accept voucher-based payments, serve inference
+4. **Claim** — Provider claims earned USDC from the contract (auto-claim protects against expiry)
 
-**Quick Start:**
-1. Clone the [reference provider](https://github.com/kimbo128/DRAIN/tree/main/provider)
-2. Configure your environment and deploy
-3. Register on the [Live Marketplace](https://believable-inspiration-production-b1c6.up.railway.app/directory)
-4. Start earning!
+### Scoring (Bittensor Subnet 58)
 
-**Requirements:**
-- DRAIN-compatible API endpoint (OpenAI-compatible)
-- Provider wallet address (Polygon)
-- Models and pricing information
+Validators on Subnet 58 score providers trustlessly:
 
-### For Developers
+- **60% DRAIN Claims** — Real USDC claimed from payment channels (7-day window)
+- **40% Availability** — Provider responds to validator health checks with valid wallet proof
 
-**Use MCP Server** (Recommended):
-```bash
-npm install -g drain-mcp
+Higher scores = more visibility in the marketplace + higher Bittensor incentive.
+
+---
+
+## Architecture
+
+```
+Agent ──── discovers ────→ Marketplace (handshake58.com)
+  │                              │
+  │ opens DRAIN channel          │ syncs scores from
+  │ pays per request             │ Bittensor metagraph
+  ↓                              ↓
+Provider ←── scores ──── Validator (Subnet 58)
+  │                        │
+  │ claims USDC            │ scans DRAIN events
+  ↓                        ↓
+Polygon ────────────────── Polygon
+(DRAIN Contract)           (ChannelClaimed events)
 ```
 
-**Or use API directly:**
-```bash
-curl https://believable-inspiration-production-b1c6.up.railway.app/api/mcp/providers
-```
+---
 
-**Or use DRAIN SDK:**
-```bash
-npm install @drain-protocol/sdk
-```
+## Pricing
 
-See [DRAIN Protocol](https://github.com/kimbo128/DRAIN) for SDK documentation.
+- **Session fee:** $0.01 per channel (flat)
+- **Protocol fee:** 0% on payments
+- **Gas cost:** ~$0.02 per channel open/claim on Polygon
+- **Provider markup:** Set by each provider (typically 20-50% on upstream costs)
+
+---
+
+## Contract Addresses
+
+| Contract | Address | Network |
+|----------|---------|---------|
+| DRAIN Channel | `0x1C1918C99b6DcE977392E4131C91654d8aB71e64` | Polygon Mainnet |
+| USDC | `0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359` | Polygon Mainnet |
+
+[View on Polygonscan](https://polygonscan.com/address/0x1C1918C99b6DcE977392E4131C91654d8aB71e64)
+
+---
+
+## Repositories
+
+| Repo | Description |
+|------|-------------|
+| [DRAIN-marketplace](https://github.com/Handshake58/DRAIN-marketplace) | Marketplace app + provider templates |
+| [HS58-validator](https://github.com/Handshake58/HS58-validator) | Bittensor Subnet 58 validator |
+| [DRAIN Protocol](https://github.com/kimbo128/DRAIN) | Core protocol, SDK, smart contracts |
 
 ---
 
 ## Documentation
 
-- **[Become a Provider](docs/BECOME_A_PROVIDER.md)** - Complete integration guide for AI providers
-- **[Provider README](https://github.com/kimbo128/DRAIN/blob/main/provider/README.md)** - Technical reference implementation
-
-## Related Projects
-
-- **DRAIN Protocol**: [Core Protocol Repository](https://github.com/kimbo128/DRAIN) - Smart contracts, SDK, MCP Server
-- **MCP Server**: [npm package](https://www.npmjs.com/package/drain-mcp) - AI agent integration
-- **Reference Provider**: [Live API](https://drain-production-a9d4.up.railway.app) - Example implementation
+- [Become a Provider](docs/BECOME_A_PROVIDER.md) — Full integration guide
+- [Agent Quick Start](https://handshake58.com/agent.md) — For AI agents and developers
+- [Architecture](https://github.com/Handshake58/DRAIN-marketplace/blob/main/ARCHITECTURE.md) — System design overview
 
 ---
 
 ## License
 
-MIT License - See [DRAIN Protocol](https://github.com/kimbo128/DRAIN) for details.
+MIT License
 
 ---
 
-**Note**: The marketplace application code is in a private repository for business reasons. This repository contains only public marketing and documentation materials.
-
-
-
-
-
+Handshake58 &copy; 2026 — Trustless AI payments powered by DRAIN Protocol & Bittensor
